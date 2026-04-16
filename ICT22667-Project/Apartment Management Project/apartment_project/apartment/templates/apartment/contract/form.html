@@ -1,0 +1,323 @@
+{% extends 'apartment/base.html' %}
+
+{% block extra_css %}
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+<style>
+    .select2-container--bootstrap-5 .select2-selection {
+        border-radius: 10px;
+        border: 1.5px solid #e4e6ef;
+        background-color: #fafbfc;
+        padding: 6px 14px;
+        height: auto;
+        min-height: 45px;
+        display: flex;
+        align-items: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<style>
+    .booking-form-hero {
+        background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+        border-radius: 16px;
+        padding: 28px 32px;
+        margin-bottom: 28px;
+        color: #fff;
+    }
+    .form-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+        background: #fff;
+        overflow: hidden;
+    }
+    .form-section {
+        padding: 24px 28px;
+    }
+    .form-section + .form-section {
+        border-top: 1px solid #f0f2f5;
+    }
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .section-title h6 {
+        font-weight: 700;
+        margin: 0;
+        color: #1e1e2d;
+    }
+    .form-floating-custom .form-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #5a5c6f;
+        margin-bottom: 6px;
+        display: block;
+    }
+    .form-floating-custom .form-control,
+    .form-floating-custom .form-select {
+        border-radius: 10px;
+        border: 1.5px solid #e4e6ef;
+        padding: 10px 14px;
+        background-color: #fafbfc;
+        height: auto;
+    }
+    .required-dot { color: #ed4c78; margin-left: 2px; }
+    .btn-save {
+        background: linear-gradient(135deg, #1045b9 0%, #053f96 100%);
+        border: none;
+        color: #fff;
+        font-weight: 700;
+        padding: 12px 32px;
+        border-radius: 10px;
+        transition: all 0.2s;
+    }
+    .btn-save:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 69, 185, 0.3); color: #fff; }
+</style>
+
+<div class="booking-form-hero">
+    <h4><i class="bi bi-file-earmark-text-fill me-2"></i>{{ title }}</h4>
+    <p>ระบุรายละเอียดสัญญาเช่าและข้อมูลเบื้องต้นสำหรับการเข้าพัก</p>
+</div>
+
+<!-- ส่วนแสดง Error (ถ้ามี) -->
+{% if form.errors %}
+<div class="alert alert-danger mx-auto col-lg-10 mb-4" style="border-radius: 12px;">
+    <h6 class="fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>ไม่สามารถบันทึกได้เนื่องจาก:</h6>
+    <ul class="mb-0">
+        {% for field, errors in form.errors.items %}
+            <li><strong>{{ field }}:</strong> {{ errors|striptags }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="row justify-content-center">
+<div class="col-lg-10">
+
+<form method="post" id="contractForm" novalidate>
+    {% csrf_token %}
+
+    <div class="form-card">
+        <!-- ข้อมูลพื้นฐาน -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="bi bi-door-open-fill text-primary"></i>
+                <h6>ข้อมูลห้องและวันที่</h6>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6 form-floating-custom">
+                    <label class="form-label">ห้องที่ทำสัญญา <span class="required-dot">*</span></label>
+                    {{ form.Room_ID }}
+                </div>
+                <div class="col-md-6 form-floating-custom">
+                    <label class="form-label">วันที่ทำรายการ</label>
+                    <input type="date" class="form-control" id="transaction_date" name="transaction_date" value="{{ today|date:'Y-m-d' }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- ผู้เช่า -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="bi bi-person-badge-fill text-primary"></i>
+                <h6>ข้อมูลผู้เช่า</h6>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-12 form-floating-custom">
+                    <label class="form-label">ผู้เช่า <span class="required-dot">*</span></label>
+                    {{ form.Tenant_ID }}
+                </div>
+            </div>
+        </div>
+
+        <!-- ระยะเวลา -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="bi bi-calendar-range-fill text-primary"></i>
+                <h6>ระยะเวลาสัญญา</h6>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6 form-floating-custom">
+                    <label class="form-label">ระยะเวลาเข้าพัก (เดือน)</label>
+                    {{ form.duration_months }}
+                </div>
+                <div class="col-md-6 form-floating-custom">
+                    <label class="form-label">สถานะสัญญา <span class="required-dot">*</span></label>
+                    {{ form.Status }}
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6 form-floating-custom">
+                    <label class="form-label">วันที่เริ่มสัญญา <span class="required-dot">*</span></label>
+                    {{ form.Start_Date }}
+                </div>
+                <div class="col-md-6 form-floating-custom">
+                    <label class="form-label">วันที่สิ้นสุดสัญญา <span class="required-dot">*</span></label>
+                    {{ form.End_Date }}
+                </div>
+            </div>
+        </div>
+
+        <!-- การเงิน -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="bi bi-wallet2 text-primary"></i>
+                <h6>การเงินและอัตราค่าบริการ</h6>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-4 form-floating-custom">
+                    <label class="form-label">ค่าเช่า/เดือน <span class="required-dot">*</span></label>
+                    {{ form.Rent_Price }}
+                </div>
+                <div class="col-md-4 form-floating-custom">
+                    <label class="form-label">เงินประกัน <span class="required-dot">*</span></label>
+                    {{ form.Deposit }}
+                </div>
+                <div class="col-md-4 form-floating-custom">
+                    <label class="form-label">เงินมัดจำล่วงหน้า <span class="required-dot">*</span></label>
+                    {{ form.Deposit_Advance }}
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6 form-floating-custom">
+                    <label class="form-label">ค่าน้ำต่อหน่วย (บาท) <span class="required-dot">*</span></label>
+                    {{ form.Water_Cost_Unit }}
+                </div>
+                <div class="col-md-6 form-floating-custom">
+                    <label class="form-label">ค่าไฟต่อหน่วย (บาท) <span class="required-dot">*</span></label>
+                    {{ form.Elec_Cost_Unit }}
+                </div>
+            </div>
+        </div>
+
+        <!-- มิเตอร์ -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="bi bi-lightning-charge-fill text-primary"></i>
+                <h6>หมายเลขมิเตอร์เริ่มต้น</h6>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6 form-floating-custom">
+                    <label class="form-label">มิเตอร์น้ำเริ่มต้น <span class="required-dot">*</span></label>
+                    {{ form.Water_Meter_Start }}
+                </div>
+                <div class="col-md-6 form-floating-custom">
+                    <label class="form-label">มิเตอร์ไฟเริ่มต้น <span class="required-dot">*</span></label>
+                    {{ form.Elec_Meter_Start }}
+                </div>
+            </div>
+        </div>
+
+        <!-- ปุ่มกด -->
+        <div class="form-section bg-light border-top-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{% url 'contract_list' %}" class="btn btn-link text-muted text-decoration-none">
+                    <i class="bi bi-arrow-left"></i> ย้อนกลับ
+                </a>
+                <button type="submit" class="btn btn-save">
+                    <i class="bi bi-save2-fill me-2"></i>บันทึกข้อมูลและพิมพ์สัญญา
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+</div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // 1. Initialize Select2
+    $('.select2').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: 'ค้นหา...'
+    });
+
+    // 2. Comma Formatting Logic
+    function formatNumber(n) {
+        // แยกส่วนจำนวนเต็มกับทศนิยม เช่น "4000.50" → ["4000", "50"]
+        let parts = String(n).replace(/,/g, '').split('.');
+        let intNum = parseInt(parts[0], 10);
+        if (isNaN(intNum)) return n;
+        let formatted = intNum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        // ต่อทศนิยมกลับถ้ามี เช่น "4,000.50"
+        if (parts.length > 1) formatted += '.' + parts[1];
+        return formatted;
+    }
+
+    // จัดรูปแบบตอนโหลดหน้า (เผื่อมีค่าเริ่มต้น)
+    $('.money-input').each(function() {
+        let currentVal = $(this).val();
+        if (currentVal) {
+            $(this).val(formatNumber(currentVal));
+        }
+    });
+
+    // จัดรูปแบบขณะพิมพ์
+    $('.money-input').on('input', function() {
+        let selectionStart = this.selectionStart;
+        let oldLength = this.value.length;
+        
+        let formatted = formatNumber($(this).val());
+        $(this).val(formatted);
+        
+        // เลื่อน cursor ให้สัมพันธ์กับคอมม่าที่เพิ่มเข้ามา
+        let newLength = formatted.length;
+        this.setSelectionRange(selectionStart + (newLength - oldLength), selectionStart + (newLength - oldLength));
+    });
+
+    // 3. Strip Commas Before Submit (สำคัญมากเพื่อให้ Django บันทึกได้)
+    $('#contractForm').on('submit', function() {
+        $('.money-input').each(function() {
+            let plainNumber = $(this).val().replace(/,/g, '');
+            $(this).val(plainNumber);
+        });
+    });
+
+    // 4. Auto Fetch Meter
+    function fetchMeter(roomId) {
+        if (!roomId) return;
+        $.getJSON("{% url 'api_room_meter_latest' %}", { room_id: roomId }, function(data) {
+            $('#id_Water_Meter_Start').val(data.water_start);
+            $('#id_Elec_Meter_Start').val(data.elec_start);
+            $('#id_Water_Meter_Start, #id_Elec_Meter_Start').fadeOut(100).fadeIn(100);
+        });
+    }
+    $('#id_Room_ID').on('change', function() {
+        fetchMeter($(this).val());
+    });
+    // ถ้าห้องถูก pre-select มาแล้ว (เช่น มาจาก room_pk) และยังไม่มีค่ามิเตอร์ ให้ fetch ทันที
+    const preselectedRoom = $('#id_Room_ID').val();
+    if (preselectedRoom && !$('#id_Water_Meter_Start').val()) {
+        fetchMeter(preselectedRoom);
+    }
+
+    // 5. Auto Calculate End Date
+    function calcEndDate() {
+        const startVal = $('#id_start_date').val();
+        const months   = parseInt($('#id_duration').val()) || 0;
+        if (!startVal || !months) return;
+        const start = new Date(startVal);
+        start.setMonth(start.getMonth() + months);
+        const yyyy = start.getFullYear();
+        const mm = String(start.getMonth() + 1).padStart(2, '0');
+        const dd = String(start.getDate()).padStart(2, '0');
+        $('#id_end_date').val(`${yyyy}-${mm}-${dd}`);
+    }
+    $('#id_start_date, #id_duration').on('change', calcEndDate);
+});
+</script>
+{% endblock %}

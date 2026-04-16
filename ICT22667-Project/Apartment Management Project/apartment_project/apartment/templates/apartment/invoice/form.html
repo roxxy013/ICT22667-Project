@@ -1,0 +1,340 @@
+{% extends 'apartment/base.html' %}
+
+{% block extra_css %}
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+<style>
+    .select2-container--bootstrap-5 .select2-selection {
+        border-radius: 10px;
+        border: 1.5px solid #e4e6ef;
+        background-color: #fafbfc;
+        padding: 6px 14px;
+        height: auto;
+        min-height: 45px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<style>
+    .invoice-form-hero {
+        background: linear-gradient(135deg, #1565c0 0%, #1976d2 50%, #0d47a1 100%);
+        border-radius: 16px;
+        padding: 28px 32px;
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(21, 101, 192, 0.2);
+    }
+    .invoice-form-hero::before {
+        content: '';
+        position: absolute;
+        top: -60%; right: -25%;
+        width: 280px; height: 280px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.08);
+    }
+    .invoice-form-hero h4 {
+        font-weight: 800;
+        font-size: 1.5rem;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+    .invoice-form-hero p {
+        opacity: 0.9;
+        font-size: 0.9rem;
+        margin: 6px 0 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    .form-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+        overflow: hidden;
+        background: #fff;
+    }
+    .form-section {
+        padding: 24px 28px;
+    }
+    .form-section + .form-section {
+        border-top: 1px solid #f0f2f5;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .section-title .section-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    .section-title h6 {
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin: 0;
+        color: #1e1e2d;
+    }
+    .section-title small {
+        font-weight: 400;
+        color: #8c8ea0;
+        font-size: 0.78rem;
+    }
+
+    .form-floating-custom .form-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #5a5c6f;
+        margin-bottom: 6px;
+        letter-spacing: 0.3px;
+    }
+    
+    /* Select, Input, Textarea styling */
+    .form-floating-custom .form-control,
+    .form-floating-custom .form-select,
+    .form-floating-custom select,
+    .form-floating-custom textarea,
+    .form-floating-custom input[type="text"],
+    .form-floating-custom input[type="number"],
+    .form-floating-custom input[type="date"] {
+        border-radius: 10px;
+        border: 1.5px solid #e4e6ef;
+        padding: 10px 14px;
+        font-size: 0.92rem;
+        transition: all 0.2s ease;
+        background-color: #fafbfc;
+        width: 100%;
+        display: block;
+        height: auto;
+    }
+    
+    .form-floating-custom .form-control:focus,
+    .form-floating-custom .form-select:focus,
+    .form-floating-custom select:focus,
+    .form-floating-custom textarea:focus,
+    .form-floating-custom input:focus {
+        border-color: #1565c0;
+        box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.12);
+        background-color: #fff;
+        outline: none;
+    }
+
+    .required-dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background: #ed4c78;
+        border-radius: 50%;
+        margin-left: 4px;
+        vertical-align: middle;
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+        border: none;
+        color: #fff;
+        font-weight: 700;
+        padding: 12px 32px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(21, 101, 192, 0.3);
+    }
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(21, 101, 192, 0.4);
+        color: #fff;
+    }
+    .btn-cancel {
+        background: #f0f2f5;
+        border: none;
+        color: #5a5c6f;
+        font-weight: 600;
+        padding: 12px 28px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+    }
+    .btn-cancel:hover {
+        background: #e4e6ef;
+        color: #1e1e2d;
+    }
+</style>
+
+<!-- Hero -->
+<div class="invoice-form-hero">
+    <h4><i class="bi bi-receipt me-2"></i>{{ title|default:"ออกใบแจ้งหนี้" }}</h4>
+    <p>ระบบออกใบแจ้งหนี้ให้ผู้เช่า ระบุค่าเช่า และบันทึกเลขมิเตอร์น้ำ/ไฟเพื่อคำนวณยอดรวม</p>
+</div>
+
+<div class="row justify-content-center">
+<div class="col-lg-8">
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="form-card">
+        <!-- Section 1: ข้อมูลใบแจ้งหนี้ -->
+        <div class="form-section">
+            <div class="section-title">
+                <div class="section-icon" style="background:#e3f2fd; color:#1565c0;">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <div>
+                    <h6>ข้อมูลใบแจ้งหนี้หลัก</h6>
+                    <small>กำหนดรอบบิลและข้อมูลผู้เช่าที่ต้องการออกบิล</small>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                {% if invoice_form %}
+                    {% for field in invoice_form %}
+                    <div class="col-md-6 form-floating-custom">
+                        <label class="form-label">{{ field.label }} 
+                            {% if field.field.required %}<span class="required-dot"></span>{% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ field.errors|striptags }}</div>
+                        {% endif %}
+                        {% if field.help_text %}
+                            <div class="text-muted small mt-1">{{ field.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- กรณีที่มีฟอร์มเดียวเป็น form ปกติ -->
+                    {% for field in form %}
+                    <div class="col-md-6 form-floating-custom">
+                        <label class="form-label">{{ field.label }} 
+                            {% if field.field.required %}<span class="required-dot"></span>{% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ field.errors|striptags }}</div>
+                        {% endif %}
+                        {% if field.help_text %}
+                            <div class="text-muted small mt-1">{{ field.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Section 2: ค่าน้ำ / ค่าไฟ (สาธารณูปโภค) - จะแสดงถ้ามีการส่ง utility_form มา -->
+        {% if utility_form %}
+        <div class="form-section">
+            <div class="section-title">
+                <div class="section-icon" style="background:#fff3e0; color:#e65100;">
+                    <i class="bi bi-lightning-charge"></i>
+                </div>
+                <div>
+                    <h6>ค่าน้ำ / ค่าไฟ (สาธารณูปโภค)</h6>
+                    <small>บันทึกหน่วยและอัตราค่าใช้จ่ายประจำเดือน</small>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                {% for field in utility_form %}
+                <div class="col-md-6 form-floating-custom">
+                    <label class="form-label">{{ field.label }} 
+                        {% if field.field.required %}<span class="required-dot"></span>{% endif %}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ field.errors|striptags }}</div>
+                    {% endif %}
+                    {% if field.help_text %}
+                        <div class="text-muted small mt-1">{{ field.help_text }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Error Alert -->
+        {% if form.errors or invoice_form.errors or utility_form.errors %}
+        <div class="form-section" style="padding-top:0;">
+            <div class="alert alert-danger d-flex align-items-center" style="border-radius:10px; border:none; background:#fff5f5; color:#c62828; margin-bottom: 0;">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span>กรุณาตรวจสอบข้อมูลให้ครบถ้วน</span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Submit -->
+        <div class="form-section" style="background:#fafbfc; border-top: 2px solid #f0f2f5;">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{% url 'invoice_list' %}" class="btn btn-cancel">
+                    <i class="bi bi-arrow-left me-1"></i> ยกเลิก
+                </a>
+                <button type="submit" class="btn btn-save">
+                    <i class="bi bi-printer-fill me-1"></i> บันทึกและดําเนินการ
+                </button>
+            </div>
+        </div>
+    </div><!-- end form-card -->
+</form>
+
+</div><!-- end col -->
+</div><!-- end row -->
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- jQuery and Select2 JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // เปิดใช้งาน Select2
+    $('.select2').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: 'ค้นหารหัสสัญญา ห้อง หรือผู้เช่า...'
+    });
+
+    // ดึงข้อมูลมิเตอร์และราคาอัตโนมัติเมื่อเลือกสัญญา
+    $('#id_Contract_ID').on('change', function() {
+        const contractId = $(this).val();
+        if (!contractId) return;
+
+        $.getJSON("{% url 'api_utility_latest' %}", { contract_id: contractId }, function(data) {
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
+            if ($('#id_Water_Unit_Used').length) $('#id_Water_Unit_Used').val(data.Water_Unit_Used || 0);
+            if ($('#id_Elec_Unit_Used').length) $('#id_Elec_Unit_Used').val(data.Elec_Unit_Used || 0);
+            if ($('#id_Water_Cost_Unit').length) $('#id_Water_Cost_Unit').val(data.Water_Cost_Unit || 0);
+            if ($('#id_Elec_Cost_Unit').length) $('#id_Elec_Cost_Unit').val(data.Elec_Cost_Unit || 0);
+            if ($('#id_Bill_Month').length && data.Bill_Month) $('#id_Bill_Month').val(data.Bill_Month);
+            
+            // เอฟเฟกต์เล็กน้อย
+            $('#id_Water_Unit_Used, #id_Elec_Unit_Used, #id_Water_Cost_Unit, #id_Elec_Cost_Unit').fadeOut(100).fadeIn(100);
+        });
+    });
+
+    // ถ้าเปิดหน้ามาแล้วมีรหัสสัญญาอยู่แล้ว (เช่น มาจาก Room Detail) ให้ดึงข้อมูลทันที
+    if ($('#id_Contract_ID').val()) {
+        $('#id_Contract_ID').trigger('change');
+    }
+});
+</script>
+{% endblock %}

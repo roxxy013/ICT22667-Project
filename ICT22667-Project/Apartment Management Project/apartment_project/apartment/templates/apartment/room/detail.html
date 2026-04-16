@@ -1,0 +1,549 @@
+{% extends 'apartment/base.html' %}
+{% load humanize %}
+{% block content %}
+
+<style>
+    .room-hero {
+        border-radius: 16px;
+        padding: 24px 28px;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+        color: #fff;
+    }
+    .room-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%; right: -30%;
+        width: 300px; height: 300px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.06);
+    }
+    .room-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -40%; left: -20%;
+        width: 250px; height: 250px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.04);
+    }
+    .hero-vacant   { background: linear-gradient(135deg, #00c9a7 0%, #00b4d8 100%); }
+    .hero-occupied { background: linear-gradient(135deg, #377dff 0%, #5e60ce 100%); }
+    .hero-maint    { background: linear-gradient(135deg, #3a3d42 0%, #1e2022 100%); }
+
+    .room-number-big {
+        font-size: 2.8rem;
+        font-weight: 900;
+        letter-spacing: -1px;
+        line-height: 1;
+    }
+    .hero-meta { opacity: 0.85; font-size: 0.95rem; }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        backdrop-filter: blur(8px);
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+    .status-pill i { font-size: 0.7rem; }
+
+    .info-card {
+        border: none;
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        transition: box-shadow 0.2s ease;
+    }
+    .info-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.08); }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+    }
+    .info-item {
+        padding: 14px 16px;
+        background: #f8f9fc;
+        border-radius: 12px;
+        border: 1px solid #ebedf2;
+    }
+    .info-item .info-label {
+        font-size: 0.75rem;
+        color: #8c8ea0;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .info-item .info-value {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #1e1e2d;
+    }
+    .info-item .info-value.text-money {
+        color: #377dff;
+    }
+
+    .action-panel {
+        border: none;
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        overflow: hidden;
+    }
+    .action-panel .action-header {
+        background: linear-gradient(135deg, #1e1e2d 0%, #2d2d44 100%);
+        color: #fff;
+        text-align: center;
+        padding: 16px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        letter-spacing: 0.5px;
+    }
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 13px 18px;
+        border: none;
+        border-bottom: 1px solid #f1f1f4;
+        background: #fff;
+        color: #3a3d42;
+        font-weight: 600;
+        font-size: 0.88rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .action-btn:hover {
+        background: #f8f9fc;
+        padding-left: 22px;
+        color: #1e1e2d;
+    }
+    .action-btn .action-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+    .action-btn:last-child { border-bottom: none; }
+
+    .tab-modern .nav-link {
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 10px 18px;
+        font-weight: 600;
+        color: #6c757d;
+        margin-right: 4px;
+        transition: all 0.2s ease;
+    }
+    .tab-modern .nav-link:hover { background: #f0f2f5; color: #1e1e2d; }
+    .tab-modern .nav-link.active {
+        background: #377dff !important;
+        color: #fff !important;
+    }
+
+    .contract-card {
+        background: linear-gradient(135deg, #f8f9fc 0%, #eef1f8 100%);
+        border-radius: 14px;
+        padding: 20px;
+        border: 1px solid #e4e6ef;
+    }
+    .contract-card h6 {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #8c8ea0;
+        font-weight: 700;
+        margin-bottom: 14px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e4e6ef;
+    }
+    .contract-card h6 i { color: #377dff; }
+
+    .booking-banner {
+        border-radius: 14px;
+        border: 2px solid #f5ca99;
+        background: linear-gradient(135deg, #fffbf5 0%, #fff8ef 100%);
+        padding: 20px;
+    }
+
+    .status-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        overflow: hidden;
+    }
+    .status-card .status-top {
+        height: 4px;
+    }
+</style>
+
+<!-- ====== HERO HEADER ====== -->
+<div class="room-hero {% if room.Status == 'ว่าง' %}hero-vacant{% elif room.Status == 'มีผู้เช่า' %}hero-occupied{% else %}hero-maint{% endif %}">
+    <div class="d-flex justify-content-between align-items-center position-relative" style="z-index:1;">
+        <div>
+            <div class="hero-meta mb-1">
+                <i class="bi bi-building me-1"></i> อาคาร {{ room.Building_No }}
+                <span class="mx-2">•</span>
+                <i class="bi bi-layers me-1"></i> ชั้น {{ room.Floor }}
+            </div>
+            <div class="room-number-big">{{ room.Room_Number }}</div>
+        </div>
+        <div class="d-flex flex-column align-items-end gap-2">
+            <div class="status-pill">
+                {% if room.Status == 'ว่าง' %}
+                    <i class="bi bi-circle-fill" style="color:#6fff9e;"></i> ว่าง
+                {% elif room.Status == 'มีผู้เช่า' %}
+                    <i class="bi bi-circle-fill" style="color:#a5d8ff;"></i> มีผู้เช่า
+                {% else %}
+                    <i class="bi bi-circle-fill" style="color:#adb5bd;"></i> ซ่อมบำรุง
+                {% endif %}
+            </div>
+            {% if room.Status_Flag != 'ปกติ' %}
+            <div class="status-pill" style="background:rgba(255,193,7,0.3); border-color:rgba(255,193,7,0.5);">
+                {% if room.Status_Flag == 'แจ้งย้ายออก' %}
+                    <i class="bi bi-box-arrow-right"></i>
+                {% elif room.Status_Flag == 'จอง' %}
+                    <i class="bi bi-bookmark-star-fill"></i>
+                {% elif room.Status_Flag == 'รอทำความสะอาด' %}
+                    <i class="bi bi-stars"></i>
+                {% endif %}
+                {{ room.Status_Flag }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- ====== LEFT: Content ====== -->
+    <div class="col-lg-8">
+
+        <!-- Quick Stats Cards -->
+        <div class="info-grid mb-4">
+            <div class="info-item">
+                <div class="info-label">เลขห้อง</div>
+                <div class="info-value">{{ room.Room_Number }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">อาคาร / ชั้น</div>
+                <div class="info-value">{{ room.Building_No }} / {{ room.Floor }}</div>
+            </div>
+            {% if active_contract %}
+            <div class="info-item">
+                <div class="info-label">ค่าเช่า / เดือน</div>
+                <div class="info-value text-money">{{ active_contract.Rent_Price|floatformat:0|intcomma }} ฿</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">ค่าน้ำ / ค่าไฟ</div>
+                <div class="info-value">{{ active_contract.Water_Cost_Unit }} / {{ active_contract.Elec_Cost_Unit }} ฿</div>
+            </div>
+            {% else %}
+            <div class="info-item">
+                <div class="info-label">สถานะ</div>
+                <div class="info-value">{{ room.Status }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">สถานะเสริม</div>
+                <div class="info-value">{{ room.Status_Flag }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Tab Section -->
+        <div class="card info-card mb-4">
+            <div class="card-header bg-white border-0 px-3 pt-3 pb-0">
+                <ul class="nav tab-modern" id="roomTab">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#tab-contract">
+                            <i class="bi bi-person-vcard me-1"></i> ผู้เช่าปัจจุบัน
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#tab-invoice">
+                            <i class="bi bi-receipt me-1"></i> ใบแจ้งหนี้
+                            {% if active_contract and active_contract.invoice_set.all %}
+                                <span class="badge bg-danger ms-1" style="font-size:0.65rem;">{{ active_contract.invoice_set.all|length }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#tab-history">
+                            <i class="bi bi-clock-history me-1"></i> ประวัติย้ายออก
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#tab-maintenance">
+                            <i class="bi bi-tools me-1"></i> แจ้งซ่อม
+                            {% if maintenances %}
+                                <span class="badge bg-danger ms-1" style="font-size:0.65rem;">{{ maintenances|length }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body tab-content px-3 pt-3">
+
+                <!-- Tab: ผู้เช่าปัจจุบัน & สัญญา -->
+                <div class="tab-pane fade show active" id="tab-contract">
+                    {% if active_contract %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="contract-card h-100">
+                                <h6><i class="bi bi-person-fill me-1"></i> ข้อมูลผู้เช่า</h6>
+                                <table class="table table-borderless table-sm mb-0">
+                                    <tr><td class="text-muted" width="110">ชื่อ-นามสกุล</td>
+                                        <td><strong>{{ active_contract.Tenant_ID.First_Name }} {{ active_contract.Tenant_ID.Last_Name }}</strong></td></tr>
+                                    <tr><td class="text-muted">เลขบัตร</td><td>{{ active_contract.Tenant_ID.ID_Card }}</td></tr>
+                                    <tr><td class="text-muted">เบอร์โทร</td><td>{{ active_contract.Tenant_ID.Phone }}</td></tr>
+                                    <tr><td class="text-muted">Line ID</td><td>{{ active_contract.Tenant_ID.Line_ID|default:"-" }}</td></tr>
+                                    <tr><td class="text-muted">อีเมล</td><td>{{ active_contract.Tenant_ID.Email|default:"-" }}</td></tr>
+                                    <tr><td class="text-muted">ที่อยู่</td><td>{{ active_contract.Tenant_ID.Address|default:"-" }}</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="contract-card h-100">
+                                <h6><i class="bi bi-file-earmark-text-fill me-1"></i> รายละเอียดสัญญา</h6>
+                                <table class="table table-borderless table-sm mb-0">
+                                    <tr><td class="text-muted" width="110">เลขสัญญา</td><td><strong>#{{ active_contract.Contract_ID }}</strong></td></tr>
+                                    <tr><td class="text-muted">วันเริ่ม</td><td>{{ active_contract.Start_Date }}</td></tr>
+                                    <tr><td class="text-muted">วันสิ้นสุด</td><td>{{ active_contract.End_Date }}</td></tr>
+                                    <tr><td class="text-muted">ค่าเช่า</td><td>{{ active_contract.Rent_Price|intcomma }} บาท</td></tr>
+                                    <tr><td class="text-muted">เงินประกัน</td><td>{{ active_contract.Deposit|intcomma }} บาท</td></tr>
+                                    <tr><td class="text-muted">เงินมัดจำ</td><td>{{ active_contract.Deposit_Advance|intcomma }} บาท</td></tr>
+                                    <tr><td class="text-muted">สถานะ</td>
+                                        <td><span class="badge bg-success" style="border-radius:6px;">{{ active_contract.Status }}</span></td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="{% url 'contract_print' active_contract.Contract_ID %}"
+                           class="btn btn-outline-primary btn-sm" style="border-radius:8px;">
+                            <i class="bi bi-printer me-1"></i> พิมพ์สัญญา</a>
+                        <a href="{% url 'contract_edit' active_contract.Contract_ID %}"
+                           class="btn btn-outline-warning btn-sm" style="border-radius:8px;">
+                            <i class="bi bi-pencil me-1"></i> แก้ไขสัญญา</a>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-person-slash fs-2"></i><br>ไม่มีผู้เช่าปัจจุบัน
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Tab: ใบแจ้งหนี้ (ของสัญญาปัจจุบัน) -->
+                <div class="tab-pane fade" id="tab-invoice">
+                    {% if active_contract %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold"><i class="bi bi-receipt me-1"></i> ประวัติใบแจ้งหนี้</span>
+                        <a href="{% url 'invoice_create' %}?contract_id={{ active_contract.Contract_ID }}" class="btn btn-success btn-sm" style="border-radius:8px;">
+                            <i class="bi bi-plus-lg me-1"></i> ออกใบแจ้งหนี้</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>#</th><th>วันออกบิล</th><th class="text-end">ยอดรวม</th><th>สถานะ</th><th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for inv in active_contract.invoice_set.all|dictsortreversed:"Billing_Date" %}
+                                <tr>
+                                    <td class="fw-bold">{{ inv.Invoice_ID }}</td>
+                                    <td>{{ inv.Billing_Date }}</td>
+                                    <td class="text-end fw-bold">{{ inv.Grand_Total|floatformat:0|intcomma }} ฿</td>
+                                    <td>
+                                        <span class="badge {% if inv.Status == 'ชำระแล้ว' %}bg-success{% elif inv.Status == 'รอชำระ' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                            {{ inv.Status }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'invoice_detail' inv.Invoice_ID %}" class="btn btn-sm btn-light">ดู</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center py-3 text-muted">ยังไม่มีใบแจ้งหนี้ในสัญญานี้</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted py-4">โปรดทำสัญญาเช่าก่อนออกใบแจ้งหนี้</p>
+                    {% endif %}
+                </div>
+
+                <!-- Tab: ประวัติย้ายออก (Historical Contracts) -->
+                <div class="tab-pane fade" id="tab-history">
+                    <div class="vstack gap-3 pb-3">
+                        {% for hist_c in all_contracts %}
+                            {% if hist_c.Status != 'ใช้งาน' %}
+                            <div class="p-3 border rounded-3 bg-light shadow-sm">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-0 fw-bold text-dark">{{ hist_c.Tenant_ID.First_Name }} {{ hist_c.Tenant_ID.Last_Name }}</h6>
+                                        <small class="text-muted">สัญญา #{{ hist_c.Contract_ID }} | ช่วง: {{ hist_c.Start_Date|date:"d/m/y" }} - {{ hist_c.End_Date|date:"d/m/y" }}</small>
+                                    </div>
+                                    <span class="badge bg-secondary">ย้ายออกแล้ว</span>
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-sm-6 small"><i class="bi bi-telephone me-1 text-primary"></i> <strong>เบอร์โทร:</strong> {{ hist_c.Tenant_ID.Phone }}</div>
+                                    <div class="col-sm-6 small"><i class="bi bi-envelope me-1 text-primary"></i> <strong>อีเมล:</strong> {{ hist_c.Tenant_ID.Email|default:"-" }}</div>
+                                </div>
+                                
+                                <div class="bg-white border rounded-2 p-2">
+                                    <p class="small fw-bold text-muted mb-2 border-bottom pb-1"><i class="bi bi-receipt-cutoff me-1"></i> ประวัติใบแจ้งหนี้เดิม (ไม่ถูกลบ)</p>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-borderless mb-0" style="font-size: 0.75rem;">
+                                            <thead class="text-muted">
+                                                <tr>
+                                                    <th>รอบบิล</th><th>เลขบิล</th><th>ยอดเงิน</th><th>สถานะ</th><th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for inv in hist_c.invoice_set.all|dictsortreversed:"Billing_Date" %}
+                                                <tr>
+                                                    <td>{{ inv.Billing_Date|date:"M Y" }}</td>
+                                                    <td>#{{ inv.Invoice_ID }}</td>
+                                                    <td class="fw-bold">฿{{ inv.Grand_Total|floatformat:0|intcomma }}</td>
+                                                    <td><span class="text-success">{{ inv.Status }}</span></td>
+                                                    <td class="text-end"><a href="{% url 'invoice_detail' inv.Invoice_ID %}" class="text-primary">เปิดดู</a></td>
+                                                </tr>
+                                                {% empty %}
+                                                <tr><td colspan="5" class="text-center py-1 text-muted">ไม่มีข้อมูลใบแจ้งหนี้</td></tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% empty %}
+                            <div class="text-center py-4 text-muted">ไม่พบประวัติผู้เช่าเก่า</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Tab: แจ้งซ่อม -->
+                <div class="tab-pane fade" id="tab-maintenance">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold"><i class="bi bi-tools me-1"></i> ประวัติแจ้งซ่อม</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead style="background:#f8f9fc;">
+                                <tr><th>#</th><th>รายละเอียด</th><th>วันที่แจ้ง</th><th>สถานะ</th><th>ค่าซ่อม</th><th></th></tr>
+                            </thead>
+                            <tbody>
+                                {% for m in maintenances %}
+                                <tr>
+                                    <td class="fw-bold">{{ m.Maintenance_ID }}</td>
+                                    <td>{{ m.Problem_Detail }}</td>
+                                    <td>{{ m.Report_Date }}</td>
+                                    <td>
+                                        <span class="badge {% if m.Status == 'ซ่อมเสร็จ' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                            {{ m.Status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ m.Repair_Cost|floatformat:0|intcomma }} ฿</td>
+                                    <td class="text-end">
+                                        <a href="{% url 'maintenance_edit' m.Maintenance_ID %}" class="btn btn-sm btn-light">แก้ไข</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="6" class="text-center py-4 text-muted">ไม่มีประวัติแจ้งซ่อม</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div><!-- end tab-content -->
+        </div><!-- end card -->
+
+        <!-- ข้อมูลผู้จอง -->
+        {% if booking %}
+        <div class="booking-banner mb-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div><span style="font-size:1.3rem;">📌</span> <strong class="ms-1">ข้อมูลผู้จอง</strong></div>
+                <span class="badge bg-warning text-dark">จองเมื่อ {{ booking.Booking_Date }}</span>
+            </div>
+            <div class="row g-3 small">
+                <div class="col-md-6">
+                    <table class="table table-borderless table-sm mb-0">
+                        <tr><td class="text-muted" width="100">ชื่อ-นามสกุล</td><td><strong>{{ booking.First_Name }} {{ booking.Last_Name }}</strong></td></tr>
+                        <tr><td class="text-muted">เบอร์โทร</td><td>{{ booking.Phone }}</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-borderless table-sm mb-0">
+                        <tr><td class="text-muted" width="100">LINE/อีเมล</td><td>{{ booking.Line_ID|default:booking.Email|default:"-" }}</td></tr>
+                        <tr><td class="text-muted">หมายเหตุ</td><td>{{ booking.Note|default:"-" }}</td></tr>
+                    </table>
+                </div>
+            </div>
+            <div class="mt-3 d-flex gap-2">
+                <a href="{% url 'booking_confirm' booking.Booking_ID %}" class="btn btn-success btn-sm px-3">ยืนยันทำสัญญา</a>
+                <a href="{% url 'booking_cancel' booking.Booking_ID %}" class="btn btn-outline-danger btn-sm px-3">ยกเลิก</a>
+            </div>
+        </div>
+        {% endif %}
+
+    </div><!-- end col-lg-8 -->
+
+    <!-- ====== RIGHT: Action Panel ====== -->
+    <div class="col-lg-4">
+        <div class="action-panel shadow-sm">
+            <div class="action-header"><i class="bi bi-lightning-charge-fill me-1"></i> จัดการห้อง</div>
+            {% if room.Status == 'ว่าง' %}
+                <a href="{% url 'contract_create_room' room.Room_ID %}" class="action-btn">
+                    <div class="action-icon" style="background:#e8f5e9; color:#2e7d32;"><i class="bi bi-file-earmark-plus"></i></div> ทำสัญญาเข้าพัก
+                </a>
+                <a href="{% url 'booking_create_room' room.Room_ID %}" class="action-btn">
+                    <div class="action-icon" style="background:#fff3e0; color:#e65100;"><i class="bi bi-bookmark-star"></i></div> จองห้อง
+                </a>
+            {% elif room.Status == 'มีผู้เช่า' %}
+                <a href="{% url 'invoice_create' %}{% if active_contract %}?contract_id={{ active_contract.Contract_ID }}{% endif %}" class="action-btn">
+                    <div class="action-icon" style="background:#e8f5e9; color:#2e7d32;"><i class="bi bi-receipt"></i></div> ออกใบแจ้งหนี้
+                </a>
+                <a href="{% url 'room_moveout' room.Room_ID %}" class="action-btn">
+                    <div class="action-icon" style="background:#ffebee; color:#c62828;"><i class="bi bi-box-arrow-right"></i></div> <span style="color:#c62828;">ย้ายออก (ปิดสัญญา)</span>
+                </a>
+                <a href="{% url 'room_notify_out' room.Room_ID %}" class="action-btn">
+                    <div class="action-icon" style="background:#fff3e0; color:#e65100;"><i class="bi bi-bell"></i></div> แจ้งย้ายออก
+                </a>
+            {% endif %}
+            
+            {% if room.Status_Flag == 'รอทำความสะอาด' %}
+                <a href="{% url 'room_done_clean' room.Room_ID %}" class="action-btn">
+                    <div class="action-icon" style="background:#e0f7fa; color:#00838f;"><i class="bi bi-check-circle-fill"></i></div> <strong>ทำความสะอาดเสร็จ</strong>
+                </a>
+            {% else %}
+                <a href="{% url 'room_clean' room.Room_ID %}" class="action-btn">
+                    <div class="action-icon" style="background:#e0f7fa; color:#00838f;"><i class="bi bi-stars"></i></div> แจ้งทำความสะอาด
+                </a>
+            {% endif %}
+
+            <a href="{% url 'maintenance_create' %}" class="action-btn">
+                <div class="action-icon" style="background:#ffebee; color:#c62828;"><i class="bi bi-tools"></i></div> <strong>แจ้งซ่อม</strong>
+            </a>
+
+            <div style="border-top: 2px solid #f1f1f4;"></div>
+            <a href="{% url 'dashboard' %}" class="action-btn">
+                <div class="action-icon" style="background:#f0f2f5; color:#6c757d;"><i class="bi bi-arrow-left"></i></div> กลับ Dashboard
+            </a>
+        </div>
+    </div>
+
+</div><!-- end row -->
+{% endblock %}
